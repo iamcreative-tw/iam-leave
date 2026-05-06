@@ -188,8 +188,15 @@
       font-size: 13px;
       font-weight: 600;
     }
-    .days-badge.show { display: inline-block; }
+    .days-badge.show { display: inline-flex; align-items: center; gap: 4px; }
     .days-badge.warn { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .days-badge input[type="number"] {
+      width: 44px; padding: 1px 4px; font-size: 13px; font-weight: 700;
+      border: 1px solid var(--theme); border-radius: 5px;
+      background: white; color: #1e293b; text-align: center;
+      -moz-appearance: textfield;
+    }
+    .days-badge input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
 
     .hint { font-size: 12px; color: #94a3b8; margin-top: 5px; line-height: 1.4; }
 
@@ -319,7 +326,7 @@
               <input type="date" id="leaveEnd" name="leaveEnd" oninput="calcDays('leave')">
             </div>
           </div>
-          <div id="leave-days" class="days-badge"></div>
+          <div id="leave-days" class="days-badge">共 <input type="number" id="leaveDaysInput" name="leaveDaysInput" min="1" value="1"> 天</div>
         </div>
         <div class="form-group">
           <label class="field-label">請假時間 <span style="font-weight:400;color:#94a3b8;font-size:12px;">請假時間不足一天請填寫起訖時間</span></label>
@@ -387,7 +394,7 @@
               <input type="date" id="tripEnd" name="tripEnd" oninput="calcDays('trip')">
             </div>
           </div>
-          <div id="trip-days" class="days-badge"></div>
+          <div id="trip-days" class="days-badge">共 <input type="number" id="tripDaysInput" name="tripDaysInput" min="1" value="1"> 天</div>
         </div>
         <div class="form-group">
           <label class="field-label">出差時間<span class="req">*</span></label>
@@ -542,17 +549,23 @@
     const startVal = document.getElementById(prefix + 'Start').value;
     const endVal   = document.getElementById(prefix + 'End').value;
     const badge    = document.getElementById(prefix + '-days');
+    const input    = document.getElementById(prefix + 'DaysInput');
     if (!startVal) { badge.className = 'days-badge'; return; }
-    if (!endVal)   { badge.className = 'days-badge show'; badge.textContent = '共 1 天'; return; }
-    const s = new Date(startVal), e = new Date(endVal);
+    const s = new Date(startVal);
+    if (!endVal) {
+      badge.className = 'days-badge show';
+      input.value = 1;
+      return;
+    }
+    const e = new Date(endVal);
     if (e < s) {
       badge.className = 'days-badge show warn';
-      badge.textContent = '⚠ 結束日期不能早於開始日期';
+      input.value = '⚠';
       return;
     }
     const days = Math.round((e - s) / 86400000) + 1;
     badge.className = 'days-badge show';
-    badge.textContent = `共 ${days} 天`;
+    input.value = days;
   }
 
   function fmtDate(val) {
@@ -592,7 +605,7 @@
       const e = document.getElementById('leaveEnd').value;
       const ts = document.getElementById('leaveTimeStart').value;
       const te = document.getElementById('leaveTimeEnd').value;
-      const days = e ? Math.round((new Date(e) - new Date(s)) / 86400000) + 1 : 1;
+      const days = parseInt(document.getElementById('leaveDaysInput').value) || 1;
       const dateStr = e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（共 1 天）`;
       const [sh, sm] = ts.split(':').map(Number);
       const [eh, em] = te.split(':').map(Number);
@@ -603,7 +616,7 @@
     if (type === 'trip') {
       const s = document.getElementById('tripStart').value;
       const e = document.getElementById('tripEnd').value;
-      const days = e ? Math.round((new Date(e) - new Date(s)) / 86400000) + 1 : 1;
+      const days = parseInt(document.getElementById('tripDaysInput').value) || 1;
       data.set('tripDate', e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（共 1 天）`);
     }
 
