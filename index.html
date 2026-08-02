@@ -273,6 +273,7 @@
     <button class="tab-btn active" onclick="switchTab('leave')">請假申請</button>
     <button class="tab-btn"        onclick="switchTab('trip')">出差申請</button>
     <button class="tab-btn"        onclick="switchTab('overtime')">加班申請</button>
+    <button class="tab-btn"        onclick="switchTab('change')">變更／取消</button>
   </div>
 
   <!-- ===== 請假申請 ===== -->
@@ -460,18 +461,80 @@
     </div>
   </div>
 
+  <!-- ===== 變更／取消申請 ===== -->
+  <div id="change-form" class="form-card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-header-title">變更／取消申請</div>
+        <div class="card-header-sub">針對已送出的假勤申請進行異動</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:9px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#92400E;line-height:1.6;">
+        📧 請先查閱送出申請時系統寄給您的「申請確認信」，以確認原申請的日期與類別，再填寫本表單。
+      </div>
+      <div id="change-alert" class="alert"></div>
+      <form onsubmit="submitForm(event,'change')">
+        <div class="form-group">
+          <label class="field-label">申請日期</label>
+          <input type="text" class="readonly-date" readonly tabindex="-1">
+        </div>
+        <div class="form-group">
+          <label class="field-label">申請人姓名<span class="req">*</span></label>
+          <input type="text" name="name" class="autofill-name" required placeholder="請輸入姓名">
+        </div>
+        <div class="form-group">
+          <label class="field-label">電子郵件<span class="req">*</span></label>
+          <input type="email" name="email" class="autofill-email" required placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+          <label class="field-label">申請操作<span class="req">*</span></label>
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="action" value="變更" required><span>變更（修改原申請內容）</span></label>
+            <label class="radio-item"><input type="radio" name="action" value="取消"><span>取消（撤回原申請）</span></label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="field-label">原申請類型<span class="req">*</span></label>
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="originalType" value="請假" required><span>請假申請</span></label>
+            <label class="radio-item"><input type="radio" name="originalType" value="出差"><span>出差申請</span></label>
+            <label class="radio-item"><input type="radio" name="originalType" value="加班"><span>加班申請</span></label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="field-label">原申請日期<span class="req">*</span></label>
+          <input type="date" name="originalDate" required>
+          <p class="hint">填寫原申請的假勤日期（可參考確認信）</p>
+        </div>
+        <div class="form-group">
+          <label class="field-label">變更／取消說明<span class="req">*</span></label>
+          <textarea name="changeReason" required placeholder="請說明變更原因或取消原因，如有修改請描述變更內容（例：原請假日期改為 8/10）"></textarea>
+        </div>
+        <hr class="divider">
+        <button type="submit" class="submit-btn">送出申請</button>
+      </form>
+    </div>
+  </div>
+
   <footer>我適文創內部系統 · 如有問題請聯繫人資</footer>
 </div>
 
 <script>
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJb4OQaMQb2Cu1vCAmJrCVEZtcpV1cxPvUjmCoATSnoh4P_-YhZdP62y8DwQy_MOIUtA/exec';
 
-  const TABS = ['leave', 'trip', 'overtime'];
+  const TABS = ['leave', 'trip', 'overtime', 'change'];
 
   const THEMES = {
     leave:    { main: '#E8637A', light: '#FEF0F2', shadow: 'rgba(232,99,122,0.22)' },
     trip:     { main: '#5AADD6', light: '#EEF7FD', shadow: 'rgba(90,173,214,0.22)' },
     overtime: { main: '#4DB860', light: '#EEF9F1', shadow: 'rgba(77,184,96,0.22)'  },
+    change:   { main: '#F59E0B', light: '#FFFBEB', shadow: 'rgba(245,158,11,0.22)' },
   };
 
   // 今天日期
