@@ -675,12 +675,16 @@
       const timeDiff = (eh * 60 + em) - (sh * 60 + sm);
       const timeStr = timeDiff > 0 ? `　${ts} – ${te}` : '';
       data.set('leaveDates', dateStr + timeStr);
+      data.set('leaveStartISO', s);
+      data.set('leaveEndISO', e || s);
     }
     if (type === 'trip') {
       const s = document.getElementById('tripStart').value;
       const e = document.getElementById('tripEnd').value;
       const days = parseInt(document.getElementById('tripDaysInput').value) || 1;
       data.set('tripDate', e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（共 1 天）`);
+      data.set('tripStartISO', s);
+      data.set('tripEndISO', e || s);
     }
 
     try {
