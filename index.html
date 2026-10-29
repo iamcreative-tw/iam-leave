@@ -662,52 +662,52 @@
     btn.textContent = '送出中…';
     alertEl.style.display = 'none';
 
-    const now = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
-    const data = new URLSearchParams();
-    data.append('type', type);
-    data.append('submittedAt', now);
-    new FormData(form).forEach((v, k) => data.append(k, v));
-
-    if (type === 'leave') {
-      const s = document.getElementById('leaveStart').value;
-      const e = document.getElementById('leaveEnd').value;
-      const ts = document.getElementById('leaveTimeStart').value;
-      const te = document.getElementById('leaveTimeEnd').value;
-      const days = parseInt(document.getElementById('leaveDaysInput').value) || 1;
-      const duration = document.querySelector('input[name="leaveDuration"]:checked')?.value || '';
-      const [sh, sm] = ts.split(':').map(Number);
-      const [eh, em] = te.split(':').map(Number);
-      const timeDiff = (eh * 60 + em) - (sh * 60 + sm);
-      let dateStr;
-      if (duration === '半日') {
-        dateStr = e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（半天）`;
-      } else if (duration === '小時') {
-        const totalMins = timeDiff > 0 ? timeDiff : 0;
-        const h = Math.floor(totalMins / 60);
-        const m = totalMins % 60;
-        const hLabel = h > 0 && m > 0 ? `${h} 小時 ${m} 分` : h > 0 ? `${h} 小時` : m > 0 ? `${m} 分` : '';
-        dateStr = e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}` : (hLabel ? `${fmtDate(s)}（${hLabel}）` : fmtDate(s));
-      } else {
-        dateStr = e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（共 1 天）`;
-      }
-      const timeStr = timeDiff > 0 ? `　${ts} – ${te}` : '';
-      const durationStr = duration ? `【${duration}】` : '';
-      data.set('leaveDates', durationStr + dateStr + timeStr);
-      data.set('leaveStartISO', s);
-      data.set('leaveEndISO', e || s);
-    }
-    if (type === 'trip') {
-      const s = document.getElementById('tripStart').value;
-      const e = document.getElementById('tripEnd').value;
-      const days = parseInt(document.getElementById('tripDaysInput').value) || 1;
-      data.set('tripDate', e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（共 1 天）`);
-      data.set('tripStartISO', s);
-      data.set('tripEndISO', e || s);
-    }
-
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
     try {
+      const now = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
+      const data = new URLSearchParams();
+      data.append('type', type);
+      data.append('submittedAt', now);
+      new FormData(form).forEach((v, k) => data.append(k, v));
+
+      if (type === 'leave') {
+        const s = document.getElementById('leaveStart').value;
+        const e = document.getElementById('leaveEnd').value;
+        const ts = document.getElementById('leaveTimeStart').value;
+        const te = document.getElementById('leaveTimeEnd').value;
+        const days = parseInt(document.getElementById('leaveDaysInput').value) || 1;
+        const duration = document.querySelector('input[name="leaveDuration"]:checked')?.value || '';
+        const [sh, sm] = (ts || '0:0').split(':').map(Number);
+        const [eh, em] = (te || '0:0').split(':').map(Number);
+        const timeDiff = (eh * 60 + em) - (sh * 60 + sm);
+        let dateStr;
+        if (duration === '半日') {
+          dateStr = e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（半天）`;
+        } else if (duration === '小時') {
+          const totalMins = timeDiff > 0 ? timeDiff : 0;
+          const h = Math.floor(totalMins / 60);
+          const m = totalMins % 60;
+          const hLabel = h > 0 && m > 0 ? `${h} 小時 ${m} 分` : h > 0 ? `${h} 小時` : m > 0 ? `${m} 分` : '';
+          dateStr = e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}` : (hLabel ? `${fmtDate(s)}（${hLabel}）` : fmtDate(s));
+        } else {
+          dateStr = e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（共 1 天）`;
+        }
+        const timeStr = timeDiff > 0 ? `　${ts} – ${te}` : '';
+        const durationStr = duration ? `【${duration}】` : '';
+        data.set('leaveDates', durationStr + dateStr + timeStr);
+        data.set('leaveStartISO', s);
+        data.set('leaveEndISO', e || s);
+      }
+      if (type === 'trip') {
+        const s = document.getElementById('tripStart').value;
+        const e = document.getElementById('tripEnd').value;
+        const days = parseInt(document.getElementById('tripDaysInput').value) || 1;
+        data.set('tripDate', e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（共 1 天）`);
+        data.set('tripStartISO', s);
+        data.set('tripEndISO', e || s);
+      }
+
       await fetch(SCRIPT_URL, { method: 'POST', body: data, mode: 'no-cors', signal: controller.signal });
       clearTimeout(timeoutId);
 
@@ -726,8 +726,9 @@
       form.querySelector('.autofill-email').value = email;
       const badge = form.querySelector('.days-badge');
       if (badge) badge.className = 'days-badge';
-    } catch {
-      showAlert(alertEl, 'error', '⚠ 網路異常，請稍後再試，或直接聯繫人資。');
+    } catch (err) {
+      clearTimeout(timeoutId);
+      showAlert(alertEl, 'error', '⚠ 送出失敗，請稍後再試，或直接聯繫人資。');
     } finally {
       btn.disabled = false;
       btn.textContent = '送出申請';
