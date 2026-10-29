@@ -675,6 +675,9 @@
       const te = document.getElementById('leaveTimeEnd').value;
       const days = parseInt(document.getElementById('leaveDaysInput').value) || 1;
       const duration = document.querySelector('input[name="leaveDuration"]:checked')?.value || '';
+      const [sh, sm] = ts.split(':').map(Number);
+      const [eh, em] = te.split(':').map(Number);
+      const timeDiff = (eh * 60 + em) - (sh * 60 + sm);
       let dateStr;
       if (duration === '半日') {
         dateStr = e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（半天）`;
@@ -687,9 +690,6 @@
       } else {
         dateStr = e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（共 1 天）`;
       }
-      const [sh, sm] = ts.split(':').map(Number);
-      const [eh, em] = te.split(':').map(Number);
-      const timeDiff = (eh * 60 + em) - (sh * 60 + sm);
       const timeStr = timeDiff > 0 ? `　${ts} – ${te}` : '';
       const durationStr = duration ? `【${duration}】` : '';
       data.set('leaveDates', durationStr + dateStr + timeStr);
