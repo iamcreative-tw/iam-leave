@@ -542,11 +542,13 @@
     change:   { main: '#F59E0B', light: '#FFFBEB', shadow: 'rgba(245,158,11,0.22)' },
   };
 
+  // 今天日期
   const todayStr = new Date().toLocaleDateString('zh-TW', {
     timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'
   });
   document.querySelectorAll('.readonly-date').forEach(el => el.value = todayStr);
 
+  // 自動帶入上次填寫的姓名和 Email
   const savedName  = localStorage.getItem('iam_name')  || '';
   const savedEmail = localStorage.getItem('iam_email') || '';
   if (savedName || savedEmail) {
@@ -555,6 +557,7 @@
     document.getElementById('saved-notice').classList.add('show');
   }
 
+  // 套用主題色
   function applyTheme(type) {
     const t = THEMES[type];
     const root = document.documentElement.style;
@@ -572,6 +575,7 @@
     applyTheme(type);
   }
 
+  // 初始化時間下拉選單（00:00 每 30 分鐘一格）
   function initTimeSelects() {
     const opts = [];
     for (let h = 0; h < 24; h++) {
@@ -592,6 +596,7 @@
   }
   initTimeSelects();
 
+  // 計算請假小時數
   function calcHours() {
     const ts = document.getElementById('leaveTimeStart').value;
     const te = document.getElementById('leaveTimeEnd').value;
@@ -607,6 +612,7 @@
     badge.textContent = h > 0 && m > 0 ? `共 ${h} 小時 ${m} 分` : h > 0 ? `共 ${h} 小時` : `共 ${m} 分`;
   }
 
+  // 計算天數
   function calcDays(prefix) {
     const startVal = document.getElementById(prefix + 'Start').value;
     const endVal   = document.getElementById(prefix + 'End').value;
@@ -669,7 +675,18 @@
       const te = document.getElementById('leaveTimeEnd').value;
       const days = parseInt(document.getElementById('leaveDaysInput').value) || 1;
       const duration = document.querySelector('input[name="leaveDuration"]:checked')?.value || '';
-      const dateStr = e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（共 1 天）`;
+      let dateStr;
+      if (duration === '半日') {
+        dateStr = e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（半天）`;
+      } else if (duration === '小時') {
+        const totalMins = timeDiff > 0 ? timeDiff : 0;
+        const h = Math.floor(totalMins / 60);
+        const m = totalMins % 60;
+        const hLabel = h > 0 && m > 0 ? `${h} 小時 ${m} 分` : h > 0 ? `${h} 小時` : m > 0 ? `${m} 分` : '';
+        dateStr = e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}` : (hLabel ? `${fmtDate(s)}（${hLabel}）` : fmtDate(s));
+      } else {
+        dateStr = e && e !== s ? `${fmtDate(s)} – ${fmtDate(e)}（共 ${days} 天）` : `${fmtDate(s)}（共 1 天）`;
+      }
       const [sh, sm] = ts.split(':').map(Number);
       const [eh, em] = te.split(':').map(Number);
       const timeDiff = (eh * 60 + em) - (sh * 60 + sm);
@@ -691,6 +708,7 @@
     try {
       await fetch(SCRIPT_URL, { method: 'POST', body: data, mode: 'no-cors' });
 
+      // 儲存姓名和 Email 供下次使用
       const name  = form.querySelector('[name="name"]').value;
       const email = form.querySelector('[name="email"]').value;
       localStorage.setItem('iam_name',  name);
@@ -700,6 +718,7 @@
       showAlert(alertEl, 'success', '✓ 申請已送出！通知信已寄出，感謝填寫。');
       form.reset();
       form.querySelector('.readonly-date').value = todayStr;
+      // reset 後重新帶入已記住的姓名和 Email
       form.querySelector('.autofill-name').value  = name;
       form.querySelector('.autofill-email').value = email;
       const badge = form.querySelector('.days-badge');
