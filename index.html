@@ -705,8 +705,11 @@
       data.set('tripEndISO', e || s);
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     try {
-      await fetch(SCRIPT_URL, { method: 'POST', body: data, mode: 'no-cors' });
+      await fetch(SCRIPT_URL, { method: 'POST', body: data, mode: 'no-cors', signal: controller.signal });
+      clearTimeout(timeoutId);
 
       // 儲存姓名和 Email 供下次使用
       const name  = form.querySelector('[name="name"]').value;
